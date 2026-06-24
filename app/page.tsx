@@ -17,7 +17,12 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-indigo-900 via-purple-600 via-pink-500 to-orange-400 z-0"></div>
+      <div 
+        className="absolute inset-0 z-0"
+        style={{
+          background: "linear-gradient(to bottom, #FFF9D2 0%, #FFEBCC 33%, #BFDDF0 66%, #8CC0EB 100%)"
+        }}
+      ></div>
 
       {/* Stars/Particles */}
       <StarField />
