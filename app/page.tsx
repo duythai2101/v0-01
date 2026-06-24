@@ -20,7 +20,7 @@ export default async function LandingPage() {
       <div 
         className="absolute inset-0 z-0"
         style={{
-          background: "linear-gradient(to bottom, #3C467B 0%, #5089C 33%, #6363CCB 66%, #6E8CFB 100%)"
+          background: "linear-gradient(to bottom, #3C467B 0%, #5058CC 33%, #636CCB 66%, #6E8CFB 100%)"
         }}
       ></div>
 
