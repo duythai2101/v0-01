@@ -1,0 +1,68 @@
+/* Email styles - These will be inlined when sending */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Charter BT Pro", serif;
+}
+
+.email-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  background-color: #ffffff;
+  color: #333333;
+}
+
+.email-content {
+  text-align: center;
+}
+
+.book-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 5px;
+  font-family: "Charter BT Pro", serif;
+}
+
+.book-author {
+  font-size: 18px;
+  font-weight: normal;
+  color: #6b7280;
+  margin-bottom: 30px;
+  font-family: "Charter BT Pro", serif;
+}
+
+.highlight-content {
+  font-size: 20px;
+  line-height: 1.6;
+  color: #374151;
+  padding: 30px 20px;
+  background-color: #f9fafb;
+  border-left: 4px solid #6b7280;
+  margin: 0 auto 30px auto;
+  max-width: 500px;
+  text-align: left;
+  font-style: italic;
+  font-family: "Charter BT Pro", serif;
+}
+
+.email-footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #eeeeee;
+  font-size: 14px;
+  color: #6b7280;
+  font-family: "Charter BT Pro", serif;
+}
+
+.unsubscribe-link {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.unsubscribe-link a {
+  color: #6b7280;
+  text-decoration: underline;
+}
