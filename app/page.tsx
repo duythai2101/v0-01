@@ -20,7 +20,7 @@ export default async function LandingPage() {
       <div 
         className="absolute inset-0 z-0"
         style={{
-          background: "linear-gradient(to bottom, #FFF9D2 0%, #FFEBCC 33%, #BFDDF0 66%, #8CC0EB 100%)"
+          background: "linear-gradient(to bottom, #3C467B 0%, #5089C 33%, #6363CCB 66%, #6E8CFB 100%)"
         }}
       ></div>
 
@@ -34,7 +34,7 @@ export default async function LandingPage() {
       <div className="relative z-20 flex-grow flex flex-col">
         {/* Header */}
         <header className="container mx-auto px-6 py-6">
-          <div className="text-slate-800 font-bold text-2xl">Tomorrow</div>
+          <div className="text-white font-bold text-2xl">Tomorrow</div>
         </header>
 
         {/* Hero Section */}
@@ -42,18 +42,18 @@ export default async function LandingPage() {
           <div className="text-center max-w-3xl mx-auto">
             {/* Decorative Frame */}
             <div className="relative">
-              <div className="absolute inset-0 border-2 border-slate-400/50 rounded-lg -m-6"></div>
-              <div className="absolute top-0 left-0 w-8 h-1 bg-slate-600 ml-4"></div>
-              <div className="absolute top-0 left-0 w-1 h-8 bg-slate-600 ml-4"></div>
-              <div className="absolute top-0 right-0 w-8 h-1 bg-slate-600 mr-4"></div>
-              <div className="absolute top-0 right-0 w-1 h-8 bg-slate-600 mr-4"></div>
-              <div className="absolute bottom-0 left-0 w-8 h-1 bg-slate-600 ml-4"></div>
-              <div className="absolute bottom-0 left-0 w-1 h-8 bg-slate-600 ml-4"></div>
-              <div className="absolute bottom-0 right-0 w-8 h-1 bg-slate-600 mr-4"></div>
-              <div className="absolute bottom-0 right-0 w-1 h-8 bg-slate-600 mr-4"></div>
+              <div className="absolute inset-0 border-2 border-white/40 rounded-lg -m-6"></div>
+              <div className="absolute top-0 left-0 w-8 h-1 bg-white/80 ml-4"></div>
+              <div className="absolute top-0 left-0 w-1 h-8 bg-white/80 ml-4"></div>
+              <div className="absolute top-0 right-0 w-8 h-1 bg-white/80 mr-4"></div>
+              <div className="absolute top-0 right-0 w-1 h-8 bg-white/80 mr-4"></div>
+              <div className="absolute bottom-0 left-0 w-8 h-1 bg-white/80 ml-4"></div>
+              <div className="absolute bottom-0 left-0 w-1 h-8 bg-white/80 ml-4"></div>
+              <div className="absolute bottom-0 right-0 w-8 h-1 bg-white/80 mr-4"></div>
+              <div className="absolute bottom-0 right-0 w-1 h-8 bg-white/80 mr-4"></div>
 
               <div className="py-16 px-8">
-                <h1 className="text-4xl md:text-6xl font-bold text-slate-800 mb-6 leading-tight">
+                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
                   All things are difficult 
                   <br />
                   before they are easy
