@@ -73,10 +73,10 @@ function TestimonialCard({ testimonial, delay }: { testimonial: TestimonialProps
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
       viewport={{ once: true }}
-      className="bg-white/15 backdrop-blur-lg rounded-xl p-6 border border-white/30 hover:border-white/50 transition-all max-w-lg md:max-w-none"
+      className="bg-white/20 backdrop-blur-md rounded-xl p-6 border border-white/40 hover:border-white/60 transition-all max-w-lg md:max-w-none shadow-lg"
     >
       <div className="flex items-center mb-4">
-        <div className="w-12 h-12 rounded-full overflow-hidden mr-4 bg-gradient-to-br from-yellow-300 to-yellow-500">
+        <div className="w-12 h-12 rounded-full overflow-hidden mr-4 bg-gradient-to-br from-blue-300 to-blue-500">
           <img
             src={testimonial.avatarUrl || "/placeholder.svg?height=100&width=100"}
             alt={testimonial.name}
@@ -85,11 +85,11 @@ function TestimonialCard({ testimonial, delay }: { testimonial: TestimonialProps
         </div>
         <div>
           <h3 className="font-bold text-white">{testimonial.name}</h3>
-          <p className="text-white/70 text-sm">{testimonial.role}</p>
+          <p className="text-white/80 text-sm">{testimonial.role}</p>
         </div>
       </div>
 
-      <p className="text-white/90 italic">"{testimonial.content}"</p>
+      <p className="text-white/95">"{testimonial.content}"</p>
     </motion.div>
   )
 }

@@ -20,7 +20,7 @@ export default async function LandingPage() {
       <div 
         className="absolute inset-0 z-0"
         style={{
-          background: "linear-gradient(to bottom, #3C467B 0%, #5058CC 33%, #636CCB 66%, #6E8CFB 100%)"
+          background: "linear-gradient(to bottom, #111844 0%, #4B5694 33%, #7288AE 66%, #EAE0CF 100%)"
         }}
       ></div>
 
@@ -53,7 +53,7 @@ export default async function LandingPage() {
               <div className="absolute bottom-0 right-0 w-1 h-8 bg-white/80 mr-4"></div>
 
               <div className="py-16 px-8">
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
                   All things are difficult 
                   <br />
                   before they are easy
