@@ -50,8 +50,8 @@ export function TestimonialSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">What we can offer</h2>
-          <p className="text-white/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: "#EAE0CF" }}>What we can offer</h2>
+          <p className="max-w-2xl mx-auto" style={{ color: "rgba(234, 224, 207, 0.9)" }}>
             Discover how to start a carrer
           </p>
         </motion.div>
@@ -84,12 +84,12 @@ function TestimonialCard({ testimonial, delay }: { testimonial: TestimonialProps
           />
         </div>
         <div>
-          <h3 className="font-bold text-white">{testimonial.name}</h3>
-          <p className="text-white/80 text-sm">{testimonial.role}</p>
+          <h3 className="font-bold" style={{ color: "#EAE0CF" }}>{testimonial.name}</h3>
+          <p className="text-sm" style={{ color: "rgba(234, 224, 207, 0.8)" }}>{testimonial.role}</p>
         </div>
       </div>
 
-      <p className="text-white/95">"{testimonial.content}"</p>
+      <p style={{ color: "rgba(234, 224, 207, 0.95)" }}>"{testimonial.content}"</p>
     </motion.div>
   )
 }

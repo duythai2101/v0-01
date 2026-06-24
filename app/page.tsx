@@ -20,7 +20,7 @@ export default async function LandingPage() {
       <div 
         className="absolute inset-0 z-0"
         style={{
-          background: "linear-gradient(to bottom, #111844 0%, #4B5694 33%, #7288AE 66%, #EAE0CF 100%)"
+          background: "linear-gradient(to bottom, #111844 0%, #4B5694 50%, #7288AE 100%)"
         }}
       ></div>
 
@@ -34,7 +34,7 @@ export default async function LandingPage() {
       <div className="relative z-20 flex-grow flex flex-col">
         {/* Header */}
         <header className="container mx-auto px-6 py-6">
-          <div className="text-white font-bold text-2xl">Tomorrow</div>
+          <div className="font-bold text-2xl" style={{ color: "#EAE0CF" }}>Tomorrow</div>
         </header>
 
         {/* Hero Section */}
@@ -42,18 +42,18 @@ export default async function LandingPage() {
           <div className="text-center max-w-3xl mx-auto">
             {/* Decorative Frame */}
             <div className="relative">
-              <div className="absolute inset-0 border-2 border-white/40 rounded-lg -m-6"></div>
-              <div className="absolute top-0 left-0 w-8 h-1 bg-white/80 ml-4"></div>
-              <div className="absolute top-0 left-0 w-1 h-8 bg-white/80 ml-4"></div>
-              <div className="absolute top-0 right-0 w-8 h-1 bg-white/80 mr-4"></div>
-              <div className="absolute top-0 right-0 w-1 h-8 bg-white/80 mr-4"></div>
-              <div className="absolute bottom-0 left-0 w-8 h-1 bg-white/80 ml-4"></div>
-              <div className="absolute bottom-0 left-0 w-1 h-8 bg-white/80 ml-4"></div>
-              <div className="absolute bottom-0 right-0 w-8 h-1 bg-white/80 mr-4"></div>
-              <div className="absolute bottom-0 right-0 w-1 h-8 bg-white/80 mr-4"></div>
+              <div className="absolute inset-0 border-2 rounded-lg -m-6" style={{ borderColor: "rgba(234, 224, 207, 0.4)" }}></div>
+              <div className="absolute top-0 left-0 w-8 h-1 ml-4" style={{ backgroundColor: "#EAE0CF" }}></div>
+              <div className="absolute top-0 left-0 w-1 h-8 ml-4" style={{ backgroundColor: "#EAE0CF" }}></div>
+              <div className="absolute top-0 right-0 w-8 h-1 mr-4" style={{ backgroundColor: "#EAE0CF" }}></div>
+              <div className="absolute top-0 right-0 w-1 h-8 mr-4" style={{ backgroundColor: "#EAE0CF" }}></div>
+              <div className="absolute bottom-0 left-0 w-8 h-1 ml-4" style={{ backgroundColor: "#EAE0CF" }}></div>
+              <div className="absolute bottom-0 left-0 w-1 h-8 ml-4" style={{ backgroundColor: "#EAE0CF" }}></div>
+              <div className="absolute bottom-0 right-0 w-8 h-1 mr-4" style={{ backgroundColor: "#EAE0CF" }}></div>
+              <div className="absolute bottom-0 right-0 w-1 h-8 mr-4" style={{ backgroundColor: "#EAE0CF" }}></div>
 
               <div className="py-16 px-8">
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight drop-shadow-lg" style={{ color: "#EAE0CF" }}>
                   All things are difficult 
                   <br />
                   before they are easy
