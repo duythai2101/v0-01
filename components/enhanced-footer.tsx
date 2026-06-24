@@ -12,7 +12,7 @@ export function EnhancedFooter() {
   ];
 
   return (
-    <footer className="relative z-10 pt-16 pb-8 border-t border-white/10">
+    <footer className="relative z-10 pt-16 pb-8 border-t border-slate-300/40">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-12">
           {/* Logo and description */}
@@ -23,8 +23,8 @@ export function EnhancedFooter() {
             viewport={{ once: true }}
             className="md:col-span-2"
           >
-            <h2 className="text-2xl font-bold text-white mb-4">Tomorrow</h2>
-            <p className="text-white/70 mb-6 max-w-md">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Tomorrow</h2>
+            <p className="text-slate-600 mb-6 max-w-md">
               Tomorrow assists you in finding, organizing, and receiving your carrer.
             </p>
             <div className="flex space-x-4">
@@ -32,9 +32,9 @@ export function EnhancedFooter() {
                 <Link
                   key={index}
                   href={social.href}
-                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                  className="w-8 h-8 rounded-full bg-slate-300/40 flex items-center justify-center hover:bg-slate-400/60 transition-colors"
                 >
-                  <social.icon size={16} className="text-white" />
+                  <social.icon size={16} className="text-slate-700" />
                 </Link>
               ))}
             </div>
@@ -42,8 +42,8 @@ export function EnhancedFooter() {
         </div> 
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-white/60 text-sm mb-4 md:mb-0">
+        <div className="pt-8 border-t border-slate-300/40 flex flex-col md:flex-row justify-between items-center">
+          <p className="text-slate-600 text-sm mb-4 md:mb-0">
             &copy; {new Date().getFullYear()} Tomorrow. 
           </p>
         </div>

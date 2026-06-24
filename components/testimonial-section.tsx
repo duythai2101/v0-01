@@ -50,8 +50,8 @@ export function TestimonialSection() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">What we can offer</h2>
-          <p className="text-white/80 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">What we can offer</h2>
+          <p className="text-slate-600 max-w-2xl mx-auto">
             Discover how to start a carrer
           </p>
         </motion.div>
@@ -73,10 +73,10 @@ function TestimonialCard({ testimonial, delay }: { testimonial: TestimonialProps
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
       viewport={{ once: true }}
-      className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:border-white/30 transition-all max-w-lg md:max-w-none" // Added max-w-lg for better single card width
+      className="bg-white/20 backdrop-blur-lg rounded-xl p-6 border border-slate-300/40 hover:border-slate-400/60 transition-all max-w-lg md:max-w-none" // Added max-w-lg for better single card width
     >
       <div className="flex items-center mb-4">
-        <div className="w-12 h-12 rounded-full overflow-hidden mr-4 bg-gradient-to-br from-indigo-500 to-purple-600">
+        <div className="w-12 h-12 rounded-full overflow-hidden mr-4 bg-gradient-to-br from-blue-400 to-blue-600">
           <img
             src={testimonial.avatarUrl || "/placeholder.svg?height=100&width=100"}
             alt={testimonial.name}
@@ -84,12 +84,12 @@ function TestimonialCard({ testimonial, delay }: { testimonial: TestimonialProps
           />
         </div>
         <div>
-          <h3 className="font-bold text-white">{testimonial.name}</h3>
-          <p className="text-white/70 text-sm">{testimonial.role}</p>
+          <h3 className="font-bold text-slate-800">{testimonial.name}</h3>
+          <p className="text-slate-600 text-sm">{testimonial.role}</p>
         </div>
       </div>
 
-      <p className="text-white/80 italic">"{testimonial.content}"</p>
+      <p className="text-slate-700 italic">"{testimonial.content}"</p>
     </motion.div>
   )
 }
