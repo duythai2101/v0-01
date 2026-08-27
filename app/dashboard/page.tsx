@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useState, useEffect } from "react"
 import type { Book } from "@/types/database"
 import { IntroPopupWrapper } from "@/components/intro-popup-wrapper"
+import { ReadingReport } from "@/components/reading-report"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -276,6 +277,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <ReadingReport />
 
       <div className="grid gap-6 md:grid-cols-2">
         <div data-tour="add-highlight">
