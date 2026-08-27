@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import type React from "react"
 import type { Metadata } from "next"
-import { Poppins } from "next/font/google"
+import { Inter } from "next/font/google"
 import "./globals.css"
 import Script from "next/script"
 
@@ -10,7 +10,7 @@ import { PageTransitionProvider } from "@/components/page-transition-provider"
 import { LoadingBar } from "@/components/loading-bar"
 import { PageTransitionEffect } from "@/components/page-transition-effect"
 
-const poppins = Poppins({ weight: ["400", "500", "600", "700"], subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Tomorrow - Book Highlights",
@@ -23,8 +23,13 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head></head>
-      <body className={poppins.className}>
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@xz/fonts@1/serve/charter-bt-pro.min.css"
+        />
+      </head>
+      <body className={inter.className}>
         <Providers>
           <Suspense fallback={null}>
             <LoadingBar />

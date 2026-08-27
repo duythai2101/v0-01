@@ -1,3 +1,19 @@
+@font-face {
+  font-family: "Charter BT Pro";
+  src: url("/fonts/CharterBTPro-Roman.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Charter BT Pro";
+  src: url("/fonts/CharterBTPro-Bold.woff2") format("woff2");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -55,6 +71,22 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  li {
+    font-family: "Charter BT Pro", serif;
   }
 }
 
