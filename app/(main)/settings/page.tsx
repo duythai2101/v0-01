@@ -4,13 +4,32 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { EmailPreferencesForm } from "@/components/email-preferences-form"
-import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react"
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
+import { PageHeader } from "@/components/page-header"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/auth-context"
+
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t border-border pt-7">
+      <h2 className="font-serif text-lg text-foreground">{title}</h2>
+      {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      <div className="mt-6 space-y-6">{children}</div>
+    </section>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-[160px_1fr] sm:items-center sm:gap-6">
+      <span className="text-sm text-foreground">{label}</span>
+      <div>{children}</div>
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -181,22 +200,19 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Cài đặt</h1>
-        <p className="text-muted-foreground mt-2">Quản lý thông tin tài khoản của bạn</p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader title="Cài đặt" description="Hồ sơ, mật khẩu và tuỳ chọn nhận email." />
 
       {message && (
         <Alert
-          className={`border ${
+          className={
             message.type === "success"
-              ? "border-green-500/20 bg-green-500/10"
+              ? "border-primary/20 bg-primary/10"
               : "border-destructive/20 bg-destructive/10"
-          }`}
+          }
         >
           {message.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <CheckCircle2 className="h-4 w-4 text-primary" />
           ) : (
             <AlertCircle className="h-4 w-4 text-destructive" />
           )}
@@ -204,125 +220,67 @@ export default function SettingsPage() {
         </Alert>
       )}
 
-      <div className="grid gap-6">
-        {/* Email Preferences Section */}
+      <Section title="Hồ sơ" description="Tên hiển thị trong lời chào và trong email hằng ngày.">
+        <form onSubmit={handleProfileUpdate} className="space-y-6">
+          <Field label="Họ">
+            <Input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Nguyễn" />
+          </Field>
+          <Field label="Tên">
+            <Input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="An" />
+          </Field>
+          <Field label="Email">
+            <Input name="email" value={formData.email} onChange={handleChange} disabled />
+          </Field>
+          <div className="flex justify-end">
+            <Button type="submit" size="sm" disabled={isUpdating}>
+              {isUpdating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              Lưu hồ sơ
+            </Button>
+          </div>
+        </form>
+      </Section>
+
+      <Section title="Mật khẩu">
+        <form onSubmit={handlePasswordUpdate} className="space-y-6">
+          <Field label="Mật khẩu hiện tại">
+            <Input
+              type="password"
+              name="currentPassword"
+              value={formData.currentPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+            />
+          </Field>
+          <Field label="Mật khẩu mới">
+            <Input
+              type="password"
+              name="newPassword"
+              value={formData.newPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+            />
+          </Field>
+          <Field label="Xác nhận">
+            <Input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="••••••••"
+            />
+          </Field>
+          <div className="flex justify-end">
+            <Button type="submit" size="sm" disabled={isUpdating}>
+              {isUpdating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+              Đổi mật khẩu
+            </Button>
+          </div>
+        </form>
+      </Section>
+
+      <Section title="Email hằng ngày" description="Chọn thời điểm và tần suất nhận highlight qua email.">
         <EmailPreferencesForm />
-
-        {/* Profile Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
-            <CardDescription>Update your personal information.</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleProfileUpdate}>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    First Name
-                  </label>
-                  <Input name="firstName" value={formData.firstName} onChange={handleChange} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Last Name
-                  </label>
-                  <Input name="lastName" value={formData.lastName} onChange={handleChange} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Email
-                </label>
-                <Input name="email" value={formData.email} onChange={handleChange} disabled />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit">Save Changes</Button>
-            </CardFooter>
-          </form>
-        </Card>
-
-        {/* Account Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>Manage your account settings.</CardDescription>
-          </CardHeader>
-          <form onSubmit={handlePasswordUpdate}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Current Password
-                </label>
-                <Input
-                  type="password"
-                  name="currentPassword"
-                  value={formData.currentPassword}
-                  onChange={handleChange}
-                  placeholder="Enter current password"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  New Password
-                </label>
-                <Input
-                  type="password"
-                  name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleChange}
-                  placeholder="Enter new password"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Confirm Password
-                </label>
-                <Input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Confirm new password"
-                />
-              </div>
-
-              {message && (
-                <Alert
-                  className={`border ${
-                    message.type === "success"
-                      ? "border-green-500/20 bg-green-500/10"
-                      : "border-destructive/20 bg-destructive/10"
-                  }`}
-                >
-                  {message.type === "success" ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-destructive" />
-                  )}
-                  <AlertDescription>{message.text}</AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" className="text-destructive">
-                Delete Account
-              </Button>
-              <Button type="submit" disabled={isUpdating}>
-                {isUpdating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Password"
-                )}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
+      </Section>
     </div>
   )
 }

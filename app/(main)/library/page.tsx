@@ -1,59 +1,37 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { BookCard } from "@/components/book-card"
-import { PlusCircle, Loader2, AlertCircle, Search } from "lucide-react"
+import Link from "next/link"
+import { AlertCircle, Plus, Search } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Book, Tag } from "@/types/database"
-import debounce from "lodash/debounce"
+import { BookRow } from "@/components/book-row"
+import { PageHeader } from "@/components/page-header"
+import { EmptyState } from "@/components/empty-state"
+import { cn } from "@/lib/utils"
+import type { Tag } from "@/types/database"
 
-interface BookWithHighlightCount extends Book {
+interface BookWithMeta {
+  id: string
+  title: string
+  author: string | null
+  cover_url: string | null
   highlightCount: number
-  tags?: Tag[]
+  tags: Tag[]
 }
 
 export default function LibraryPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [books, setBooks] = useState<BookWithHighlightCount[]>([])
-  const [filteredBooks, setFilteredBooks] = useState<BookWithHighlightCount[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
+  const [books, setBooks] = useState<BookWithMeta[]>([])
+  const [query, setQuery] = useState("")
+  const [activeTagId, setActiveTagId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      if (!query.trim()) {
-        setFilteredBooks(books)
-        return
-      }
-
-      const searchQuery = query.toLowerCase().trim()
-      const filtered = books.filter(
-        (book) =>
-          book.title.toLowerCase().includes(searchQuery) ||
-          (book.author && book.author.toLowerCase().includes(searchQuery)),
-      )
-      setFilteredBooks(filtered)
-    }, 300),
-    [books],
-  )
-
-  // Update search results when searchQuery changes
-  useEffect(() => {
-    debouncedSearch(searchQuery)
-    return () => {
-      debouncedSearch.cancel()
-    }
-  }, [searchQuery, debouncedSearch])
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -63,196 +41,182 @@ export default function LibraryPage() {
         setIsLoading(true)
         setError(null)
 
-        const { data: booksData, error: booksError } = await supabase
-          .from("books")
-          .select(`
-            *,
-            book_tags (
-              tags:tag_id (
-                id, name, color, user_id, created_at
-              )
-            )
-          `)
-          .order("title", { ascending: true })
+        // Two queries total. The previous version counted highlights one book
+        // at a time with a 100ms sleep between each, which scaled terribly.
+        const [booksResult, highlightsResult] = await Promise.all([
+          supabase
+            .from("books")
+            .select("id, title, author, cover_url, book_tags(tags:tag_id(id, name, color, user_id, created_at))")
+            .eq("user_id", user.id)
+            .order("title", { ascending: true }),
+          supabase.from("highlights").select("book_id").eq("user_id", user.id),
+        ])
 
-        if (booksError) {
-          throw booksError
+        if (booksResult.error) throw booksResult.error
+        if (highlightsResult.error) throw highlightsResult.error
+
+        const counts = new Map<string, number>()
+        for (const row of highlightsResult.data || []) {
+          counts.set(row.book_id, (counts.get(row.book_id) || 0) + 1)
         }
 
-        if (!booksData || booksData.length === 0) {
-          setBooks([])
-          setFilteredBooks([])
-          setIsLoading(false)
-          return
-        }
-
-        // Process books in batches to avoid rate limiting
-        const batchSize = 5
-        const booksWithCounts: BookWithHighlightCount[] = []
-
-        for (let i = 0; i < booksData.length; i += batchSize) {
-          const batch = booksData.slice(i, i + batchSize)
-
-          // Process each book in the batch in parallel
-          const batchResults = await Promise.all(
-            batch.map(async (book: any) => {
-              try {
-                // Add a small delay between requests to avoid rate limiting
-                await new Promise((resolve) => setTimeout(resolve, 100))
-
-                const { count, error: countError } = await supabase
-                  .from("highlights")
-                  .select("id", { count: "exact", head: true })
-                  .eq("book_id", book.id)
-
-                if (countError) {
-                  console.warn(`Error fetching highlight count for book ${book.id}:`, countError)
-                  return {
-                    ...book,
-                    highlightCount: 0,
-                    tags: book.book_tags?.map((bt: any) => bt.tags).filter(Boolean) || [],
-                  }
-                }
-
-                return {
-                  ...book,
-                  highlightCount: count || 0,
-                  tags: book.book_tags?.map((bt: any) => bt.tags).filter(Boolean) || [],
-                }
-              } catch (err) {
-                console.warn(`Error processing book ${book.id}:`, err)
-                return {
-                  ...book,
-                  highlightCount: 0,
-                  tags: [],
-                }
-              }
-            }),
-          )
-
-          booksWithCounts.push(...batchResults)
-        }
-
-        setBooks(booksWithCounts)
-        setFilteredBooks(booksWithCounts)
-      } catch (error: any) {
-        console.error("Error fetching books:", error)
-
-        // Check if it's a rate limiting error
-        if (error.message && error.message.includes("Too Many")) {
-          if (retryCount < 3) {
-            // Retry with exponential backoff
-            const delay = Math.pow(2, retryCount) * 1000
-            console.log(`Rate limited. Retrying in ${delay}ms...`)
-            setError(`Rate limited by Supabase. Retrying in ${delay / 1000} seconds...`)
-
-            setTimeout(() => {
-              setRetryCount(retryCount + 1)
-            }, delay)
-
-            return
-          } else {
-            setError("Too many requests. Please try again later.")
-          }
-        } else {
-          setError("Failed to load books. Please try again.")
-        }
+        setBooks(
+          (booksResult.data || []).map((book: any) => ({
+            id: book.id,
+            title: book.title,
+            author: book.author,
+            cover_url: book.cover_url,
+            highlightCount: counts.get(book.id) || 0,
+            tags: (book.book_tags || []).map((bt: any) => bt.tags).filter(Boolean),
+          })),
+        )
+      } catch (err: any) {
+        console.error("Error fetching books:", err)
+        setError("Không tải được thư viện. Vui lòng thử lại.")
       } finally {
         setIsLoading(false)
       }
     }
 
     fetchBooks()
-  }, [user, retryCount])
+  }, [user])
 
-  const handleAddBook = () => {
-    router.push("/books/add")
-  }
+  // Tag filter replaces the separate Book Tags page.
+  const allTags = useMemo(() => {
+    const byId = new Map<string, Tag>()
+    books.forEach((book) => book.tags.forEach((tag) => byId.set(tag.id, tag)))
+    return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [books])
 
-  const handleEditBook = (id: string) => {
-    router.push(`/books/${id}/edit`)
-  }
+  const visibleBooks = useMemo(() => {
+    const needle = query.trim().toLowerCase()
+    return books.filter((book) => {
+      const matchesTag = !activeTagId || book.tags.some((tag) => tag.id === activeTagId)
+      const matchesQuery =
+        !needle ||
+        book.title.toLowerCase().includes(needle) ||
+        (book.author || "").toLowerCase().includes(needle)
+      return matchesTag && matchesQuery
+    })
+  }, [books, query, activeTagId])
 
-  const handleDeleteBook = async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!user) return
-
     try {
-      setIsDeleting(true)
-      setError(null)
-
-      // Delete book from database (book_tags will be cascade deleted)
       const { error: deleteError } = await supabase.from("books").delete().eq("id", id).eq("user_id", user.id)
-
       if (deleteError) throw deleteError
-
-      // Update local state
-      setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id))
-      setFilteredBooks((prevBooks) => prevBooks.filter((book) => book.id !== id))
-    } catch (error: any) {
-      console.error("Error deleting book:", error)
-      setError(error.message || "Failed to delete book. Please try again.")
-    } finally {
-      setIsDeleting(false)
+      setBooks((previous) => previous.filter((book) => book.id !== id))
+    } catch (err: any) {
+      console.error("Error deleting book:", err)
+      setError(err.message || "Không xoá được sách.")
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
+  const totalHighlights = books.reduce((sum, book) => sum + book.highlightCount, 0)
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Library</h1>
-          <p className="text-muted-foreground mt-2">Manage your collection of books and texts.</p>
-        </div>
-        <Button onClick={handleAddBook}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add Book
-        </Button>
-      </div>
+      <PageHeader
+        title="Thư viện"
+        description={
+          isLoading
+            ? undefined
+            : `${books.length} cuốn · ${totalHighlights.toLocaleString()} highlight`
+        }
+        actions={
+          <Button asChild>
+            <Link href="/books/add">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Thêm sách
+            </Link>
+          </Button>
+        }
+      />
 
       {error && (
-        <Alert className="border border-destructive/20 bg-destructive/10">
+        <Alert className="border-destructive/20 bg-destructive/10">
           <AlertCircle className="h-4 w-4 text-destructive" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Tìm kiếm theo tên sách hoặc tác giả..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Tìm theo tên sách hoặc tác giả"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveTagId(null)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs transition-colors",
+                activeTagId === null
+                  ? "border-foreground/25 bg-secondary text-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Tất cả
+            </button>
+            {allTags.map((tag) => (
+              <button
+                key={tag.id}
+                type="button"
+                onClick={() => setActiveTagId(activeTagId === tag.id ? null : tag.id)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
+                  activeTagId === tag.id
+                    ? "border-foreground/25 bg-secondary text-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: tag.color || "hsl(var(--muted-foreground))" }}
+                />
+                {tag.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {filteredBooks.length === 0 && !isLoading && !error ? (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium mb-2">
-            {books.length === 0 ? "Your library is empty" : "No books found"}
-          </h3>
-          <p className="text-muted-foreground mb-6">
-            {books.length === 0 ? "Add your first book to get started" : "Try adjusting your search query"}
-          </p>
-          {books.length === 0 && (
-            <Button onClick={handleAddBook}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Your First Book
-            </Button>
-          )}
+      {isLoading ? (
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-[68px] animate-pulse rounded-md bg-muted/60" />
+          ))}
         </div>
+      ) : visibleBooks.length === 0 ? (
+        <EmptyState
+          title={books.length === 0 ? "Thư viện còn trống" : "Không tìm thấy cuốn nào"}
+          description={
+            books.length === 0
+              ? "Thêm cuốn sách đầu tiên để bắt đầu lưu highlight."
+              : "Thử đổi từ khoá hoặc bỏ bộ lọc chủ đề."
+          }
+          action={
+            books.length === 0 ? (
+              <Button asChild>
+                <Link href="/books/add">
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  Thêm sách
+                </Link>
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredBooks.map((book) => (
-            <BookCard
+        <div className="border-t border-border">
+          {visibleBooks.map((book) => (
+            <BookRow
               key={book.id}
               id={book.id}
               title={book.title}
@@ -260,8 +224,8 @@ export default function LibraryPage() {
               highlightCount={book.highlightCount}
               coverUrl={book.cover_url}
               tags={book.tags}
-              onEdit={handleEditBook}
-              onDelete={handleDeleteBook}
+              onEdit={(id) => router.push(`/books/${id}/edit`)}
+              onDelete={handleDelete}
             />
           ))}
         </div>

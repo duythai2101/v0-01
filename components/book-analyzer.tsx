@@ -164,7 +164,7 @@ export function BookAnalyzer() {
 
       // Chuyển hướng sau khi lưu
       setTimeout(() => {
-        router.push("/favorites")
+        router.push("/highlights")
         router.refresh()
       }, 1500)
     } catch (error: any) {
@@ -182,8 +182,8 @@ export function BookAnalyzer() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Upload File</CardTitle>
-          <CardDescription>Chọn file text chứa highlight của bạn</CardDescription>
+          <CardTitle className="text-base">Chọn tệp</CardTitle>
+          <CardDescription>Tệp .txt chứa các đoạn bạn muốn lưu</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
@@ -209,7 +209,7 @@ export function BookAnalyzer() {
       {books.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Thông tin sách</CardTitle>
+            <CardTitle className="text-base">Thông tin sách</CardTitle>
             <CardDescription>Kiểm tra thông tin trước khi lưu</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import { format } from "date-fns"
-import { Pencil, Trash2, Heart } from "lucide-react"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Heart, Pencil, Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { cn } from "@/lib/utils"
 
 interface HighlightCardProps {
   id: string
@@ -28,6 +27,8 @@ interface HighlightCardProps {
   onDelete?: (id: string) => void
   onToggleFavorite?: (id: string, currentFavorite: boolean) => void
 }
+
+const COLLAPSE_AT = 280
 
 export function HighlightCard({
   id,
@@ -43,16 +44,13 @@ export function HighlightCard({
   const [isExpanded, setIsExpanded] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isFavorite, setIsFavorite] = useState(favorite)
-  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
+  const [isToggling, setIsToggling] = useState(false)
 
-  const displayContent = isExpanded ? content : content.length > 150 ? `${content.substring(0, 150)}...` : content
+  const isLong = content.length > COLLAPSE_AT
+  const shown = isExpanded || !isLong ? content : `${content.slice(0, COLLAPSE_AT).trimEnd()}…`
 
   const handleDelete = async () => {
-    if (!onDelete) {
-      console.warn("onDelete function is not provided.")
-      return
-    }
-
+    if (!onDelete) return
     setIsDeleting(true)
     try {
       await onDelete(id)
@@ -65,75 +63,88 @@ export function HighlightCard({
 
   const handleToggleFavorite = async () => {
     if (!onToggleFavorite) return
-
-    setIsTogglingFavorite(true)
-    const previousState = isFavorite
-    setIsFavorite(!isFavorite)
-
+    setIsToggling(true)
+    const previous = isFavorite
+    setIsFavorite(!previous)
     try {
-      await onToggleFavorite(id, isFavorite)
+      await onToggleFavorite(id, previous)
     } catch (error) {
       console.error("Error toggling favorite:", error)
-      setIsFavorite(previousState)
+      setIsFavorite(previous)
     } finally {
-      setIsTogglingFavorite(false)
+      setIsToggling(false)
     }
   }
 
   return (
-    <Card className="group mb-4 overflow-hidden hover:bg-accent/50 transition-all duration-200">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-base font-medium font-charter">{bookTitle}</CardTitle>
-            {author && <p className="text-sm text-gray-600">{author}</p>}
-          </div>
+    <article className="group relative rounded-md border border-border bg-card px-5 py-4 transition-colors hover:border-foreground/20">
+      {/* The quote is the point of the card, so it gets the serif and the size. */}
+      <blockquote className="font-serif text-[15px] leading-[1.7] text-foreground/90">{shown}</blockquote>
+
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          {isExpanded ? "Thu gọn" : "Đọc tiếp"}
+        </button>
+      )}
+
+      <div className="mt-4 flex items-end justify-between gap-4 border-t border-border pt-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm text-foreground">{bookTitle}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {author ? `${author} · ` : ""}
+            {format(new Date(createdAt), "d MMM yyyy")}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-0.5">
           {onToggleFavorite && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 -mt-1"
+            <button
+              type="button"
               onClick={handleToggleFavorite}
-              disabled={isTogglingFavorite}
+              disabled={isToggling}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+              title={isFavorite ? "Bỏ yêu thích" : "Đánh dấu yêu thích"}
             >
               <Heart
-                className={`h-5 w-5 transition-all ${
-                  isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground hover:text-red-500"
-                }`}
+                className={cn("h-4 w-4 transition-colors", isFavorite && "fill-primary text-primary")}
+                strokeWidth={1.75}
               />
-            </Button>
+            </button>
           )}
-        </div>
-      </CardHeader>
-      <CardContent className="pb-2">
-        <p className="text-sm leading-relaxed">{displayContent}</p>
-      </CardContent>
-      <CardFooter className="flex justify-between items-center pt-0">
-        <span className="text-xs text-gray-400">{format(new Date(createdAt), "MMM d, yyyy")}</span>
 
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           {onEdit && (
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(id)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
+            <button
+              type="button"
+              onClick={() => onEdit(id)}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-foreground focus:opacity-100 group-hover:opacity-100"
+              title="Sửa"
+            >
+              <Pencil className="h-4 w-4" strokeWidth={1.75} />
+            </button>
           )}
 
           {onDelete && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <button
+                  type="button"
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-destructive focus:opacity-100 group-hover:opacity-100"
+                  title="Xoá"
+                >
+                  <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                </button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Xác nhận xóa Highlight</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Bạn có chắc chắn muốn xóa highlight này không? Hành động này không thể hoàn tác.
-                  </AlertDialogDescription>
+                  <AlertDialogTitle>Xoá highlight này?</AlertDialogTitle>
+                  <AlertDialogDescription>Hành động này không thể hoàn tác.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Hủy</AlertDialogCancel>
+                  <AlertDialogCancel>Huỷ</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={(e) => {
                       e.preventDefault()
@@ -142,14 +153,14 @@ export function HighlightCard({
                     disabled={isDeleting}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    {isDeleting ? "Đang xóa..." : "Xóa"}
+                    {isDeleting ? "Đang xoá…" : "Xoá"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           )}
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </article>
   )
 }

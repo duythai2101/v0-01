@@ -18,6 +18,11 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
+        poppins: ["var(--font-poppins)", "ui-sans-serif", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +62,14 @@ const config = {
           cream: "#FFEBCC",
           "light-blue": "#BFDDF0",
           blue: "#8CC0EB",
+        },
+        chart: {
+          accent: "hsl(var(--chart-accent))",
+          "neutral-1": "hsl(var(--chart-neutral-1))",
+          "neutral-2": "hsl(var(--chart-neutral-2))",
+          "neutral-3": "hsl(var(--chart-neutral-3))",
+          "neutral-4": "hsl(var(--chart-neutral-4))",
+          track: "hsl(var(--chart-track))",
         },
       },
       borderRadius: {

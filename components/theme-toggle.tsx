@@ -1,64 +1,31 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { Button } from "@/components/ui/button"
-import { Moon, Sun, Cat } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Moon, Sun } from "lucide-react"
 import { useEffect, useState } from "react"
 
-interface ThemeToggleProps {
-  onCatsToggle?: (visible: boolean) => void
-}
-
-export function ThemeToggle({ onCatsToggle }: ThemeToggleProps) {
-  const { setTheme, theme } = useTheme()
+export function ThemeToggle() {
+  const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [showCats, setShowCats] = useState(true)
 
-  // Avoid hydration mismatch by only rendering after mount
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const handleCatsToggle = () => {
-    const newState = !showCats
-    setShowCats(newState)
-    onCatsToggle?.(newState)
-  }
+  // Theme is unknown until hydration; render a placeholder of the same size.
+  useEffect(() => setMounted(true), [])
 
   if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" disabled>
-        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
-      </Button>
-    )
+    return <div className="h-9 w-9" aria-hidden />
   }
 
+  const isDark = resolvedTheme === "dark"
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          <span>Sáng</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          <span>Tối</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCatsToggle}>
-          <Cat className="mr-2 h-4 w-4" />
-          <span>{showCats ? "Ẩn mèo" : "Hiện mèo"}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <button
+      type="button"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      title={isDark ? "Chuyển sang nền sáng" : "Chuyển sang nền tối"}
+    >
+      {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+      <span className="sr-only">Đổi giao diện sáng/tối</span>
+    </button>
   )
 }

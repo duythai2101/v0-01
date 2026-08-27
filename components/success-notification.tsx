@@ -35,12 +35,12 @@ export function SuccessNotification({
 
   return (
     <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 fade-in duration-300">
-      <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg p-4 text-white min-w-[320px] max-w-[400px]">
+      <div className="min-w-[280px] max-w-[400px] rounded-md border border-border bg-card p-4">
         <div className="flex gap-3">
-          <CheckCircle2 className="h-6 w-6 flex-shrink-0 mt-0.5" />
+          <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" strokeWidth={1.75} />
           <div className="flex-1">
-            <h3 className="font-semibold text-sm">{title}</h3>
-            <p className="text-xs text-green-50 mt-1">{description}</p>
+            <h3 className="text-sm text-foreground">{title}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
           </div>
         </div>
       </div>

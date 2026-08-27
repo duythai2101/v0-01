@@ -38,17 +38,9 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth")
 
   // Check if we're on a protected route
-  const isProtectedRoute =
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/books") ||
-    request.nextUrl.pathname.startsWith("/favorites") ||
-    request.nextUrl.pathname.startsWith("/highlights") ||
-    request.nextUrl.pathname.startsWith("/library") ||
-    request.nextUrl.pathname.startsWith("/tags") || // Added /tags route protection
-    request.nextUrl.pathname.startsWith("/settings") ||
-    request.nextUrl.pathname.startsWith("/email-preview") ||
-    request.nextUrl.pathname.startsWith("/test-email") ||
-    request.nextUrl.pathname.startsWith("/admin")
+  const isProtectedRoute = ["/dashboard", "/books", "/highlights", "/library", "/settings"].some((route) =>
+    request.nextUrl.pathname.startsWith(route),
+  )
 
   // If user is signed in and on an auth page, redirect to dashboard
   if (user && isAuthPage && request.nextUrl.pathname !== "/auth/callback") {

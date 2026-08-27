@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -169,25 +168,14 @@ export function EmailPreferencesForm() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Email Preferences</CardTitle>
-          <CardDescription>Configure how you receive highlight emails.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center py-6">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </CardContent>
-      </Card>
+      <div className="flex justify-center py-6">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Email Preferences</CardTitle>
-        <CardDescription>Configure how you receive highlight emails.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <div className="space-y-6">
         {message && (
           <Alert
             className={`border ${
@@ -314,19 +302,12 @@ export function EmailPreferencesForm() {
             </SelectContent>
           </Select>
         </div>
-      </CardContent>
-      <CardFooter>
-        <Button onClick={handleSave} disabled={isSaving || (!isRandom && !selectedHighlightId)}>
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            "Save Preferences"
-          )}
+      <div className="flex justify-end border-t border-border pt-6">
+        <Button size="sm" onClick={handleSave} disabled={isSaving || (!isRandom && !selectedHighlightId)}>
+          {isSaving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          {isSaving ? "Đang lưu…" : "Lưu tuỳ chọn"}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }

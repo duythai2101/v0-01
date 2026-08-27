@@ -1,139 +1,108 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import Link from "next/link"
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusCircle, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import type { Book } from "@/types/database"
 
 interface NewHighlightFormProps {
   books: Book[]
-  onSubmit: (values: { content: string; bookId: string }) => void
-  onAddBook: (book: { title: string; author?: string }) => void
+  onSubmit: (values: { content: string; bookId: string }) => Promise<void> | void
+  /** Preselects a book, e.g. when adding from a book's own page. */
+  defaultBookId?: string
+  autoFocus?: boolean
 }
 
-export function NewHighlightForm({ books, onSubmit, onAddBook }: NewHighlightFormProps) {
-  const router = useRouter()
+export function NewHighlightForm({ books, onSubmit, defaultBookId, autoFocus }: NewHighlightFormProps) {
   const [content, setContent] = useState("")
-  const [bookId, setBookId] = useState("")
-  const [contentError, setContentError] = useState("")
-  const [bookIdError, setBookIdError] = useState("")
+  const [bookId, setBookId] = useState(defaultBookId || "")
+  const [formError, setFormError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Validation
-    let hasError = false
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
 
     if (!content.trim()) {
-      setContentError("Highlight content is required")
-      hasError = true
+      setFormError("Chưa có nội dung highlight.")
+      return
     }
-
     if (!bookId) {
-      setBookIdError("Please select a book")
-      hasError = true
+      setFormError("Chọn cuốn sách chứa đoạn này.")
+      return
     }
-
-    if (hasError) return
 
     try {
       setIsSubmitting(true)
+      setFormError("")
       await onSubmit({ content, bookId })
-
-      // Reset form
       setContent("")
-      setBookId("")
+      setBookId(defaultBookId || "")
     } catch (error) {
       console.error("Error submitting highlight:", error)
+      setFormError("Không lưu được. Thử lại nhé.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  if (books.length === 0) {
+    return (
+      <div className="rounded-md border border-dashed border-border px-5 py-8 text-center">
+        <p className="text-sm text-muted-foreground">Cần có ít nhất một cuốn sách trước khi ghi highlight.</p>
+        <Button variant="outline" size="sm" className="mt-4" asChild>
+          <Link href="/books/add">Thêm sách</Link>
+        </Button>
+      </div>
+    )
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add New Highlight</CardTitle>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Highlight
-            </label>
-            <Textarea
-              placeholder="Enter your highlight here..."
-              className="min-h-[120px]"
-              value={content}
-              onChange={(e) => {
-                setContent(e.target.value)
-                if (e.target.value.trim()) setContentError("")
-              }}
-              disabled={isSubmitting}
-            />
-            {contentError && <p className="text-sm text-destructive">{contentError}</p>}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Book
-            </label>
-            <div className="flex gap-2">
-              <Select
-                value={bookId}
-                onValueChange={(value) => {
-                  setBookId(value)
-                  setBookIdError("")
-                }}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a book" />
-                </SelectTrigger>
-                <SelectContent>
-                  {books.map((book) => (
-                    <SelectItem key={book.id} value={book.id}>
-                      {book.title} {book.author ? `by ${book.author}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => router.push("/books/add")}
-                disabled={isSubmitting}
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only">Add new book</span>
-              </Button>
-            </div>
-            {bookIdError && <p className="text-sm text-destructive">{bookIdError}</p>}
-            {books.length === 0 && (
-              <p className="text-sm text-muted-foreground">No books found. Please add a book first.</p>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" disabled={isSubmitting || books.length === 0} className="w-full">
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Highlight"
-            )}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+    <form onSubmit={handleSubmit} className="rounded-md border border-border bg-card p-5">
+      <Textarea
+        autoFocus={autoFocus}
+        placeholder="Chép lại đoạn bạn tâm đắc…"
+        className="min-h-[120px] resize-none border-0 bg-transparent p-0 font-serif text-[15px] leading-[1.7] shadow-none focus-visible:ring-0"
+        value={content}
+        onChange={(event) => {
+          setContent(event.target.value)
+          if (formError) setFormError("")
+        }}
+        disabled={isSubmitting}
+      />
+
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+        <Select
+          value={bookId}
+          onValueChange={(value) => {
+            setBookId(value)
+            if (formError) setFormError("")
+          }}
+          disabled={isSubmitting}
+        >
+          <SelectTrigger className="h-9 w-full sm:w-[240px]">
+            <SelectValue placeholder="Chọn sách" />
+          </SelectTrigger>
+          <SelectContent>
+            {books.map((book) => (
+              <SelectItem key={book.id} value={book.id}>
+                {book.title}
+                {book.author ? ` — ${book.author}` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button type="submit" size="sm" className="ml-auto" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          {isSubmitting ? "Đang lưu…" : "Lưu highlight"}
+        </Button>
+      </div>
+
+      {formError && <p className="mt-3 text-sm text-destructive">{formError}</p>}
+    </form>
   )
 }

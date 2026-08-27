@@ -2,221 +2,213 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { HighlightCard } from "@/components/highlight-card"
-import { Button } from "@/components/ui/button"
-import { PlusCircle, Loader2, AlertCircle, ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
+import { AlertCircle, ArrowLeft, Pencil, Plus } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/context/auth-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { HighlightCard } from "@/components/highlight-card"
+import { EmptyState } from "@/components/empty-state"
 import type { Book, Tag } from "@/types/database"
+
+interface BookHighlight {
+  id: string
+  content: string
+  created_at: string
+  favorite: boolean
+}
 
 export default function BookPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { user } = useAuth()
   const [book, setBook] = useState<Book | null>(null)
-  const [highlights, setHighlights] = useState<any[]>([])
+  const [tags, setTags] = useState<Tag[]>([])
+  const [highlights, setHighlights] = useState<BookHighlight[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [tags, setTags] = useState<Tag[]>([])
 
-  useEffect(() => {
-    const fetchTags = async () => {
-      if (!user) return
-
-      try {
-        const { data, error } = await supabase.from("tags").select("*").order("name", { ascending: true })
-
-        if (error) throw error
-        setTags(data || [])
-      } catch (error) {
-        console.error("Error fetching tags:", error)
-      }
-    }
-
-    fetchTags()
-  }, [user])
-
-  const fetchBookAndHighlights = async () => {
+  const fetchBook = async () => {
     if (!user) return
 
     try {
       setIsLoading(true)
       setError(null)
 
-      // Fetch book details
-      const { data: bookData, error: bookError } = await supabase.from("books").select("*").eq("id", params.id).single()
+      const [bookResult, highlightsResult, tagResult] = await Promise.all([
+        supabase.from("books").select("*").eq("id", params.id).single(),
+        supabase
+          .from("highlights")
+          .select("id, content, created_at, favorite")
+          .eq("book_id", params.id)
+          .order("created_at", { ascending: false }),
+        supabase.from("book_tags").select("tags:tag_id(id, name, color, user_id, created_at)").eq("book_id", params.id),
+      ])
 
-      if (bookError) throw bookError
-      setBook(bookData)
+      if (bookResult.error) throw bookResult.error
+      if (highlightsResult.error) throw highlightsResult.error
 
-      // Fetch highlights (xoá join với highlight_tags)
-      const { data: highlightsData, error: highlightsError } = await supabase
-        .from("highlights")
-        .select(`
-          id,
-          content,
-          created_at,
-          book_id,
-          favorite,
-          books:book_id (
-            title,
-            author,
-            cover_url
-          )
-        `)
-        .eq("book_id", params.id)
-        .order("created_at", { ascending: false })
-
-      if (highlightsError) throw highlightsError
-
-      // Format highlights data
-      const formattedHighlights: any[] = (highlightsData || []).map((h: any) => ({
-        id: h.id,
-        content: h.content,
-        created_at: new Date(h.created_at),
-        favorite: h.favorite || false,
-        book: {
-          title: h.books?.title || "Unknown Book",
-          author: h.books?.author,
-          cover_url: h.books?.cover_url,
-        },
-      }))
-
-      setHighlights(formattedHighlights)
-    } catch (error: any) {
-      console.error("Error fetching book data:", error)
-      setError(error.message || "Failed to load book data")
+      setBook(bookResult.data)
+      setHighlights(highlightsResult.data || [])
+      setTags(((tagResult.data || []) as any[]).map((row) => row.tags).filter(Boolean))
+    } catch (err: any) {
+      console.error("Error fetching book data:", err)
+      setError("Không tải được dữ liệu sách.")
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    if (user) {
-      fetchBookAndHighlights()
-    }
+    if (user) fetchBook()
   }, [user, params.id])
 
-  const handleAddHighlight = () => {
-    router.push(`/favorites/add?bookId=${params.id}`)
-  }
-
-  const handleEditHighlight = (id: string) => {
-    router.push(`/favorites/${id}/edit`)
-  }
-
-  const handleDeleteHighlight = async (id: string) => {
-    if (!user) return
-
-    try {
-      const { error } = await supabase.from("highlights").delete().eq("id", id)
-
-      if (error) throw error
-
-      // Refresh highlights
-      fetchBookAndHighlights()
-    } catch (error: any) {
-      console.error("Error deleting highlight:", error)
-      setError(error.message || "Failed to delete highlight")
+  const handleDelete = async (id: string) => {
+    const { error: deleteError } = await supabase.from("highlights").delete().eq("id", id)
+    if (deleteError) {
+      setError(deleteError.message)
+      return
     }
+    setHighlights((previous) => previous.filter((highlight) => highlight.id !== id))
   }
 
   const handleToggleFavorite = async (id: string, currentFavorite: boolean) => {
-    if (!user) return
-
-    try {
-      const { error } = await supabase.from("highlights").update({ favorite: !currentFavorite }).eq("id", id)
-
-      if (error) throw error
-
-      // Update local state
-      setHighlights(highlights.map((h) => (h.id === id ? { ...h, favorite: !currentFavorite } : h)))
-    } catch (error: any) {
-      console.error("Error toggling favorite:", error)
-      setError(error.message || "Failed to update favorite")
-      throw error
-    }
+    const { error: updateError } = await supabase
+      .from("highlights")
+      .update({ favorite: !currentFavorite })
+      .eq("id", id)
+    if (updateError) throw updateError
+    setHighlights((previous) =>
+      previous.map((highlight) =>
+        highlight.id === id ? { ...highlight, favorite: !currentFavorite } : highlight,
+      ),
+    )
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="space-y-6">
+        <div className="h-6 w-24 animate-pulse rounded bg-muted/60" />
+        <div className="h-24 animate-pulse rounded-md bg-muted/60" />
+        <div className="h-32 animate-pulse rounded-md bg-muted/60" />
       </div>
     )
   }
 
   if (!book) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-lg font-medium mb-2">Book not found</h3>
-        <p className="text-muted-foreground mb-6">The book you're looking for doesn't exist or has been deleted.</p>
-        <Button onClick={() => router.push("/books")}>Back to Books</Button>
-      </div>
+      <EmptyState
+        title="Không tìm thấy cuốn sách này"
+        description="Sách có thể đã bị xoá."
+        action={
+          <Button asChild variant="outline">
+            <Link href="/library">Về thư viện</Link>
+          </Button>
+        }
+      />
     )
   }
 
   return (
-    <div className="min-h-screen bg-background space-y-8">
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
-          <button
-            onClick={() => router.push("/library")}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors ml-[-1rem]"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">Quay lại</span>
-          </button>
-        </div>
-      </div>
+    <div className="space-y-10">
+      <Link
+        href="/library"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Thư viện
+      </Link>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{book.title}</h1>
-            {book.author && <p className="text-muted-foreground mt-2">by {book.author}</p>}
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="flex min-w-0 gap-5">
+          {book.cover_url ? (
+            <Image
+              src={book.cover_url}
+              alt=""
+              width={72}
+              height={104}
+              className="h-[104px] w-[72px] shrink-0 rounded-sm border border-border object-cover"
+            />
+          ) : (
+            <div className="h-[104px] w-[72px] shrink-0 rounded-sm border border-border bg-muted" aria-hidden />
+          )}
+          <div className="min-w-0">
+            <h1 className="font-serif text-[28px] leading-tight tracking-tight text-foreground">{book.title}</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">{book.author || "Không rõ tác giả"}</p>
+            <p className="tabular mt-3 text-sm text-muted-foreground">
+              {highlights.length} highlight
+            </p>
+            {tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <span key={tag.id} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ background: tag.color || "hsl(var(--muted-foreground))" }}
+                    />
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          <Button onClick={handleAddHighlight}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Highlight
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href={`/books/${params.id}/edit`}>
+              <Pencil className="mr-1.5 h-4 w-4" />
+              Sửa
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href={`/highlights/add?bookId=${params.id}`}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              Thêm highlight
+            </Link>
           </Button>
         </div>
-
-        {error && (
-          <Alert className="border border-destructive/20 bg-destructive/10">
-            <AlertCircle className="h-4 w-4 text-destructive" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {highlights.length === 0 ? (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">No highlights yet</h3>
-            <p className="text-muted-foreground mb-6">Add your first highlight for this book</p>
-            <Button onClick={handleAddHighlight}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Your First Highlight
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {highlights.map((highlight) => (
-              <HighlightCard
-                key={highlight.id}
-                id={highlight.id}
-                content={highlight.content}
-                bookTitle={highlight.book.title}
-                author={highlight.book.author || undefined}
-                createdAt={highlight.created_at}
-                favorite={highlight.favorite}
-                onEdit={handleEditHighlight}
-                onDelete={handleDeleteHighlight}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      {error && (
+        <Alert className="border-destructive/20 bg-destructive/10">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {highlights.length === 0 ? (
+        <EmptyState
+          title="Chưa có highlight nào cho cuốn này"
+          description="Ghi lại đoạn đầu tiên bạn tâm đắc."
+          action={
+            <Button asChild>
+              <Link href={`/highlights/add?bookId=${params.id}`}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                Thêm highlight
+              </Link>
+            </Button>
+          }
+        />
+      ) : (
+        <div className="space-y-3">
+          {highlights.map((highlight) => (
+            <HighlightCard
+              key={highlight.id}
+              id={highlight.id}
+              content={highlight.content}
+              bookTitle={book.title}
+              author={book.author || undefined}
+              createdAt={new Date(highlight.created_at)}
+              favorite={highlight.favorite}
+              onEdit={(id) => router.push(`/highlights/${id}/edit`)}
+              onDelete={handleDelete}
+              onToggleFavorite={handleToggleFavorite}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,8 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,73 +10,69 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Menu, HelpCircle } from "lucide-react"
+import { LogOut, Menu, Settings } from "lucide-react"
 import { useSidebar } from "./sidebar-context"
 import { useAuth } from "@/context/auth-context"
 import { ThemeToggle } from "./theme-toggle"
-import { IntroPopup } from "./intro-popup"
-import { useState } from "react"
-import { AnimatedCats } from "./animated-cats"
 
 export function TopNavbar() {
   const { toggleSidebar } = useSidebar()
   const { user, signOut } = useAuth()
 
-  // Get user initials for avatar fallback
-  const userInitials = user?.email ? user.email.substring(0, 2).toUpperCase() : "JD"
-  const [showIntro, setShowIntro] = useState(false)
-  const [showCats, setShowCats] = useState(true)
+  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??"
 
   return (
-    <header className="border-b bg-card relative">
-      {showCats && <AnimatedCats />}
-      <div className="flex h-16 items-center px-4 md:px-6 relative z-10">
-        <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={toggleSidebar}>
+    <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
+      <div className="flex h-16 items-center gap-2 px-6 md:px-10">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className="-ml-2 flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground md:hidden"
+        >
           <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle menu</span>
-        </Button>
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-semibold tracking-tight">Tomorrow</span>
+          <span className="sr-only">Mở menu</span>
+        </button>
+
+        <Link href="/dashboard" className="font-serif text-lg tracking-tight md:hidden">
+          Tomorrow
         </Link>
-        <div className="ml-auto flex items-center gap-2">
-          <ThemeToggle onCatsToggle={setShowCats} />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowIntro(true)}
-            className="rounded-full bg-black hover:bg-gray-800 dark:bg-black dark:hover:bg-gray-800"
-            title="Show intro guide"
-          >
-            <HelpCircle className="h-5 w-5 text-white" />
-          </Button>
+
+        <div className="ml-auto flex items-center gap-1">
+          <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <button
+                type="button"
+                className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-80"
+              >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg" alt={user?.email || "User"} />
-                  <AvatarFallback>{userInitials}</AvatarFallback>
+                  <AvatarFallback className="bg-secondary text-xs font-medium text-secondary-foreground">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
-              </Button>
+                <span className="sr-only">Tài khoản</span>
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              {user?.email && (
-                <DropdownMenuItem className="text-xs text-muted-foreground">{user.email}</DropdownMenuItem>
-              )}
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="font-normal">
+                <p className="text-xs text-muted-foreground">Đang đăng nhập</p>
+                <p className="truncate text-sm font-medium">{user?.email}</p>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/settings">Settings</Link>
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Cài đặt
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()} className="font-['Charter_BT_Pro'] font-bold">
-                Logout
+              <DropdownMenuItem onClick={() => signOut()}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-      {/* Intro popup */}
-      <IntroPopup open={showIntro} onOpenChange={setShowIntro} />
     </header>
   )
 }

@@ -6,8 +6,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Upload } from "lucide-react"
+import Link from "next/link"
+import { ArrowLeft, Loader2, Upload } from "lucide-react"
+import { PageHeader } from "@/components/page-header"
 import { useAuth } from "@/context/auth-context"
 import type { NewBook, Tag } from "@/types/database"
 import { TagSelector } from "@/components/tag-selector"
@@ -15,6 +16,21 @@ import { useToast } from "@/hooks/use-toast"
 import { SuccessNotification } from "@/components/success-notification"
 
 const supabase = createClient()
+
+function Field({ label, hint, required, children }: { label: string; hint?: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-[160px_1fr] sm:items-start sm:gap-6">
+      <div className="pt-2">
+        <span className="text-sm text-foreground">
+          {label}
+          {required && <span className="text-primary"> *</span>}
+        </span>
+        {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}
+      </div>
+      <div>{children}</div>
+    </div>
+  )
+}
 
 export default function AddBookPage() {
   const router = useRouter()
@@ -135,110 +151,87 @@ export default function AddBookPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="space-y-8">
       <SuccessNotification
-        title="Thành công"
-        description="Sách được thêm thành công!"
+        title="Đã lưu"
+        description="Sách đã được thêm vào thư viện."
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
         autoCloseDuration={2000}
       />
 
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add New Book</h1>
-          <p className="text-muted-foreground mt-2">Add a new book to your library</p>
-        </div>
+      <Link
+        href="/library"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Thư viện
+      </Link>
 
-        <Card className="max-w-2xl">
-          <form onSubmit={handleSubmit}>
-            <CardHeader>
-              <CardTitle>Book Details</CardTitle>
-              <CardDescription>Enter the details of the book you want to add</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="title" className="text-sm font-medium leading-none">
-                  Title <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="Enter book title"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="author" className="text-sm font-medium leading-none">
-                  Author (optional)
-                </label>
-                <Input
-                  id="author"
-                  name="author"
-                  value={formData.author || ""}
-                  onChange={handleChange}
-                  placeholder="Enter author name"
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="cover" className="text-sm font-medium leading-none">
-                  Cover Image (optional)
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Input
-                      id="cover"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCoverChange}
-                      disabled={isSubmitting}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="cover"
-                      className="flex items-center justify-center w-24 h-32 border-2 border-dashed rounded-md cursor-pointer hover:bg-accent/50"
-                    >
-                      {coverPreview ? (
-                        <img
-                          src={coverPreview || "/placeholder.svg"}
-                          alt="Cover preview"
-                          className="w-full h-full object-cover rounded-md"
-                        />
-                      ) : (
-                        <Upload className="h-8 w-8 text-muted-foreground" />
-                      )}
-                    </label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Click to upload a cover image</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Tags (optional)</label>
-                <TagSelector selectedTags={selectedTags} onTagsChange={setSelectedTags} disabled={isSubmitting} />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding Book...
-                  </>
-                ) : (
-                  "Add Book"
-                )}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
+      <PageHeader title="Thêm sách" description="Sách là nơi các highlight của bạn được gắn vào." />
+
+      <form onSubmit={handleSubmit} className="space-y-7 border-t border-border pt-7">
+        <Field label="Tên sách" required>
+          <Input
+            id="title"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            placeholder="Ví dụ: Sapiens"
+            disabled={isSubmitting}
+            required
+          />
+        </Field>
+
+        <Field label="Tác giả">
+          <Input
+            id="author"
+            name="author"
+            value={formData.author || ""}
+            onChange={handleChange}
+            placeholder="Ví dụ: Yuval Noah Harari"
+            disabled={isSubmitting}
+          />
+        </Field>
+
+        <Field label="Ảnh bìa" hint="Không bắt buộc">
+          <div className="flex items-center gap-4">
+            <Input
+              id="cover"
+              type="file"
+              accept="image/*"
+              onChange={handleCoverChange}
+              disabled={isSubmitting}
+              className="hidden"
+            />
+            <label
+              htmlFor="cover"
+              className="flex h-[104px] w-[72px] cursor-pointer items-center justify-center overflow-hidden rounded-sm border border-dashed border-border transition-colors hover:border-foreground/30"
+            >
+              {coverPreview ? (
+                <img src={coverPreview} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <Upload className="h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
+              )}
+            </label>
+            <p className="text-xs text-muted-foreground">Bấm để chọn ảnh</p>
+          </div>
+        </Field>
+
+        <Field label="Chủ đề" hint="Dùng để lọc trong thư viện">
+          <TagSelector selectedTags={selectedTags} onTagsChange={setSelectedTags} disabled={isSubmitting} />
+        </Field>
+
+        <div className="flex items-center justify-end gap-2 border-t border-border pt-6">
+          <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isSubmitting}>
+            Huỷ
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+            {isSubmitting ? "Đang lưu…" : "Thêm sách"}
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }

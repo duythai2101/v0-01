@@ -3,49 +3,69 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Editorial palette: warm paper and ink, one accent (terracotta).
+   * Neutrals carry a slight warm hue so large surfaces read as paper
+   * rather than screen grey.
+   */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --background: 40 33% 98%;
+    --foreground: 30 8% 12%;
+    --card: 40 40% 99%;
+    --card-foreground: 30 8% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    --popover-foreground: 30 8% 12%;
+    --primary: 18 48% 44%;
+    --primary-foreground: 40 33% 98%;
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 30 8% 12%;
+    --muted: 40 20% 95%;
+    --muted-foreground: 30 6% 42%;
+    --accent: 40 20% 94%;
+    --accent-foreground: 30 8% 12%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 40 33% 98%;
+    --border: 38 18% 88%;
+    --input: 38 18% 88%;
+    --ring: 18 48% 44%;
+    --radius: 0.375rem;
+
+    /* Charts: one accent against a neutral ramp, never a rainbow. */
+    --chart-accent: 18 48% 44%;
+    --chart-neutral-1: 30 8% 28%;
+    --chart-neutral-2: 30 7% 45%;
+    --chart-neutral-3: 32 10% 62%;
+    --chart-neutral-4: 34 14% 76%;
+    --chart-track: 38 18% 90%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 6.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 6.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --background: 30 6% 8%;
+    --foreground: 40 20% 92%;
+    --card: 30 6% 10%;
+    --card-foreground: 40 20% 92%;
+    --popover: 30 6% 10%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 18 55% 58%;
+    --primary-foreground: 30 6% 8%;
+    --secondary: 30 5% 16%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 30 5% 15%;
+    --muted-foreground: 38 8% 62%;
+    --accent: 30 5% 16%;
+    --accent-foreground: 40 20% 92%;
+    --destructive: 0 55% 48%;
+    --destructive-foreground: 40 20% 92%;
+    --border: 30 5% 18%;
+    --input: 30 5% 18%;
+    --ring: 18 55% 58%;
+
+    --chart-accent: 18 55% 58%;
+    --chart-neutral-1: 40 14% 82%;
+    --chart-neutral-2: 38 9% 64%;
+    --chart-neutral-3: 34 7% 48%;
+    --chart-neutral-4: 30 6% 34%;
+    --chart-track: 30 5% 18%;
   }
 }
 
@@ -55,6 +75,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Figures should line up in columns when they sit in a stats row. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
   }
 }
 
